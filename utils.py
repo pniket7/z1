@@ -1,7 +1,7 @@
 import openai,pickle,time
 import numpy as np
 import pandas as pd
-from typing import Any
+from typing import Any,Optional
 
 
 def ErrorHandler(f, *args, **kwargs):
