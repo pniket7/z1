@@ -20,7 +20,7 @@ def main():
 
     # Start the conversation.
     user_input = ''
-    st.write('Advisor:', sessionAdvisor.messages[-1].content)
+    st.write('Advisor:', sessionAdvisor.messages[-1]['content'])
 
     # Continue the conversation with a more flexible flow
     while True:
