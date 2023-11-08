@@ -2,9 +2,14 @@ import streamlit as st
 import openai
 from utils import ChatSession
 
+# Set your OpenAI API key
+openai.api_key = "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"
+
 def main():
     # Initialize the AdvisorGPT.
     sessionAdvisor = ChatSession(gpt_name='Advisor')
+
+    st.title("Financial Assistant Chatbot")
 
     # Instruct GPT to become a financial advisor.
     sessionAdvisor.inject(
@@ -14,25 +19,16 @@ def main():
     sessionAdvisor.inject(line="Ok.", role="assistant")
 
     # Start the conversation.
-    user_input = st.text_input("User:")
-    sessionAdvisor.chat(user_input=user_input, verbose=False)
+    user_input = ''
     st.write('Advisor:', sessionAdvisor.messages[-1].content)
 
     # Continue the conversation with a more flexible flow
     while True:
         user_input = st.text_input("User:")
-        sessionAdvisor.chat(user_input=user_input, verbose=False)
-        assistant_response = sessionAdvisor.messages[-1].content
-        st.write('Advisor:', assistant_response)
+        if st.button("Send"):
+            sessionAdvisor.chat(user_input=user_input, verbose=False)
+            assistant_response = sessionAdvisor.messages[-1].content
+            st.write('Advisor:', assistant_response)
 
 if __name__ == "__main__":
-    # Load or set the OpenAI API key
-    openai.api_key = "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"
-
-    st.title("Financial Assistant Chatbot")
-    st.write("Connecting you to the financial advisor...")
-
-    try:
-        main()
-    except Exception as e:
-        st.write(f'Connection failed. Please start a new chat. Error: {e}')
+    main()
