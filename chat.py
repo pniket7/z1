@@ -9,7 +9,7 @@ def main():
 
     # Access the OpenAI API key from Streamlit secrets
     api_key = st.secrets["openai_api_key"]
-    openai.api_key = api_key  # Set the OpenAI API key
+    openai.api_key = api_key
 
     # Initialize the AdvisorGPT.
     sessionAdvisor = ChatSession(gpt_name='Advisor')
