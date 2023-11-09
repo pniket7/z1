@@ -13,7 +13,7 @@ def main():
 
     # Instruct GPT to become a financial advisor.
     sessionAdvisor.inject(
-        line="You are a financial advisor at a bank. Greet the user with this message: 'Hello! How can I assist you with your banking today? What are you trying to accomplish with your banking?' Start the conversation by inquiring about the user's financial goals. If the user mentions a specific financial goal or issue, acknowledge it and offer to help. Be attentive to the user's needs and goals. ",
+        line="You are a financial advisor at a bank. Start the conversation by inquiring about the user's financial goals. If the user mentions a specific financial goal or issue, acknowledge it and offer to help. Be attentive to the user's needs and goals. ",
         role="user"
     )
     sessionAdvisor.inject(line="Ok.", role="assistant")
@@ -32,8 +32,8 @@ def main():
         # Extract the chatbot's response from the last message in the history
         advisor_response = chat_history[-1]['content'] if chat_history else ""
 
-        # Display the chatbot's response
-        st.text(f'Advisor: {advisor_response}')
+        # Display the chatbot's response with text wrapping
+        st.markdown(f'**Advisor:** {advisor_response}', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
