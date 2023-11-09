@@ -1,10 +1,15 @@
-
+from dotenv import load_dotenv
+import os
 import openai
 import streamlit as st
 from utils import ChatSession
 
 def main():
     st.title('Financial Bank Advisor Chatbot')
+
+    # Access the OpenAI API key from Streamlit secrets
+    api_key = st.secrets["openai_api_key"]
+    openai.api_key = api_key  # Set the OpenAI API key
 
     # Initialize the AdvisorGPT.
     sessionAdvisor = ChatSession(gpt_name='Advisor')
@@ -16,10 +21,6 @@ def main():
     )
     sessionAdvisor.inject(line="Ok.", role="assistant")
 
-    # Start the conversation.
-    user_input = ''
-    advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
-
     # Create a Streamlit text input for user input with a unique key
     user_input = st.text_input("User:", key="user_input")
 
@@ -29,8 +30,4 @@ def main():
         st.text(f'Advisor: {advisor_response}')
 
 if __name__ == "__main__":
-    # Load or set the OpenAI API key
-    openai.api_key = "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"
-
     main()
-
