@@ -29,6 +29,6 @@ def main():
 
 if __name__ == "__main__":
     # Load or set the OpenAI API key
-    openai.api_key = "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"
+    openai.api_key = "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"
 
     main()
