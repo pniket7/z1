@@ -8,7 +8,7 @@ def main():
     # Load the OpenAI API key from Streamlit secrets
     openai.api_key = st.secrets["api_key"]
 
-    # Initialize the AdvisorGPT.
+    # Initialize the AdvisorGPT. (Move this outside of the button click handler)
     sessionAdvisor = ChatSession(gpt_name='Advisor')
 
     # Instruct GPT to become a financial advisor.
@@ -17,10 +17,6 @@ def main():
         role="user"
     )
     sessionAdvisor.inject(line="Ok.", role="assistant")
-
-    # Start the conversation.
-    user_input = ''
-    advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
 
     # Create a Streamlit text input for user input with a unique key
     user_input = st.text_input("User:", key="user_input")
