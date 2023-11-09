@@ -1,14 +1,7 @@
-from dotenv import load_dotenv
-import os
+
 import openai
 import streamlit as st
 from utils import ChatSession
-
-# Load environment variables from the .env file
-load_dotenv()
-
-# Set the API key from the environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def main():
     st.title('Financial Bank Advisor Chatbot')
@@ -23,11 +16,21 @@ def main():
     )
     sessionAdvisor.inject(line="Ok.", role="assistant")
 
-    # Create a Streamlit text input for user input.
-    user_input = st.text_input("User:")
-    if st.button("Send"):
+    # Start the conversation.
+    user_input = ''
+    advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
+
+    # Create a Streamlit text input for user input with a unique key
+    user_input = st.text_input("User:", key="user_input")
+
+    # Create a Streamlit button with a unique key
+    if st.button("Send", key="send_button"):
         advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
         st.text(f'Advisor: {advisor_response}')
 
 if __name__ == "__main__":
+    # Load or set the OpenAI API key
+    openai.api_key = "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"
+
     main()
+
