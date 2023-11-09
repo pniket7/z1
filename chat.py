@@ -19,9 +19,11 @@ def main():
     user_input = ''
     advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
 
-    # Create a Streamlit text input for user input.
-    user_input = st.text_input("User:")
-    if st.button("Send"):
+    # Create a Streamlit text input for user input with a unique key
+    user_input = st.text_input("User:", key="user_input")
+
+    # Create a Streamlit button with a unique key
+    if st.button("Send", key="send_button"):
         advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
         st.text(f'Advisor: {advisor_response}')
 
