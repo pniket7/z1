@@ -1,15 +1,12 @@
-import streamlit as st
 import openai
+import streamlit as st
 from utils import ChatSession
 
-# Set your OpenAI API key
-openai.api_key = "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"
-
 def main():
+    st.title('Financial Bank Advisor Chatbot')
+
     # Initialize the AdvisorGPT.
     sessionAdvisor = ChatSession(gpt_name='Advisor')
-
-    st.title("Financial Assistant Chatbot")
 
     # Instruct GPT to become a financial advisor.
     sessionAdvisor.inject(
@@ -20,15 +17,16 @@ def main():
 
     # Start the conversation.
     user_input = ''
-    st.write('Advisor:', sessionAdvisor.messages[-1]['content'])
+    advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
 
-    # Continue the conversation with a more flexible flow
-    while True:
-        user_input = st.text_input("User:")
-        if st.button("Send"):
-            sessionAdvisor.chat(user_input=user_input, verbose=False)
-            assistant_response = sessionAdvisor.messages[-1].content
-            st.write('Advisor:', assistant_response)
+    # Create a Streamlit text input for user input.
+    user_input = st.text_input("User:")
+    if st.button("Send"):
+        advisor_response = sessionAdvisor.chat(user_input=user_input, verbose=False)
+        st.text(f'Advisor: {advisor_response}')
 
 if __name__ == "__main__":
+    # Load or set the OpenAI API key
+    openai.api_key = "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"
+
     main()
