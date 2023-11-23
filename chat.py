@@ -24,6 +24,20 @@ def ErrorHandler(f, *args, **kwargs):
     return wrapper
 
 class ChatSession:
+    completions = {
+        1: dict(
+            completion=openai.ChatCompletion,
+            model="gpt-3.5-turbo",
+            text='message.content',
+            prompt='messages'
+        ),
+        0: dict(
+            completion=openai.Completion,
+            model="text-davinci-003",
+            text='text',
+            prompt='prompt'
+        )
+    }
     def __init__(self, gpt_name='GPT') -> None:
         self.messages = []
         self.history = []
