@@ -53,11 +53,13 @@ class ChatSession:
         if completion_index == 1:
             kwargs.update({'temperature': 0.5})
         cache_key = str(kwargs)
-        if cache_key in self.gpt_cache:
+        
+        try:
             reply = self.gpt_cache[cache_key]
-        else:
+        except KeyError:
             reply = self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
             self.gpt_cache[cache_key] = reply
+
         self.history[-1].update({'completion_index': completion_index})
         if verbose:
             self.__call__(1)
