@@ -5,6 +5,7 @@ import time
 import numpy as np
 import pandas as pd
 from typing import Optional, Union
+from gptcache import Cache  # Importing Cache from gptcache
 
 def ErrorHandler(f, *args, **kwargs):
     def wrapper(*args, **kwargs):
@@ -23,48 +24,27 @@ def ErrorHandler(f, *args, **kwargs):
     return wrapper
 
 class ChatSession:
-    completions = {
-        1: dict(
-            completion=openai.ChatCompletion,
-            model="gpt-3.5-turbo",
-            text='message.content',
-            prompt='messages'
-        ),
-        0: dict(
-            completion=openai.Completion,
-            model="text-davinci-003",
-            text='text',
-            prompt='prompt'
-        )
-    }
-
     def __init__(self, gpt_name='GPT') -> None:
         self.messages = []
         self.history = []
         self.gpt_name = gpt_name
-        self.cache = {}  # Introduce cache attribute
+        self.gpt_cache = Cache(maxsize=1000)  # Creating an instance of Cache
 
     def chat(self, user_input: Optional[Union[dict, str]] = None, verbose=True, *args, **kwargs):
         completion_index = 0 if kwargs.get('logprobs', False) or kwargs.get('model') == 'text-davinci-003' else 1
         completion = self.completions[completion_index]
         user_input = self.__get_input(user_input=user_input, log=True)
-        user_input_cache_key = user_input if isinstance(user_input, str) else user_input['content']
-
-        # Check cache before calling the model
-        if user_input_cache_key in self.cache:
-            cached_response = self.cache[user_input_cache_key]
-            self.__log(message={"role": 'assistant', "content": cached_response}, history=cached_response)
-            return
-
+        user_input = self.messages if completion_index else self.messages[-1]['content']
         kwargs.update({completion['prompt']: user_input, 'model': completion['model']})
         if completion_index == 1:
             kwargs.update({'temperature': 0.5})
-        self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
+        cache_key = str(kwargs)
+        if cache_key in self.gpt_cache:
+            reply = self.gpt_cache[cache_key]
+        else:
+            reply = self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
+            self.gpt_cache[cache_key] = reply
         self.history[-1].update({'completion_index': completion_index})
-
-        # Store the response in the cache
-        self.cache[user_input_cache_key] = self.history[-1]['content']
-
         if verbose:
             self.__call__(1)
 
@@ -80,7 +60,7 @@ class ChatSession:
 
     def inject(self, line, role):
         self.__log(message={"role": role, "content": line})
-
+    
     def clear(self, k=None):
         if k:
             self.messages = self.messages[:-k]
@@ -91,7 +71,7 @@ class ChatSession:
     def save(self, filename):
         with open(filename, 'wb') as f:
             pickle.dump(self, f)
-
+            
     def load(self, filename):
         with open(filename, 'rb') as f:
             temp = pickle.load(f)
@@ -135,7 +115,7 @@ class ChatSession:
             message = msg['content']
             who = {'user': 'User: ', 'assistant': f'{self.gpt_name}: '}[msg['role']]
             print(who + message.strip() + '\n')
-
+            
 @ErrorHandler
 def update_investor_profile(session, investor_profile: dict, questions: list[str], verbose: bool = False):
     ask_for_these = [i for i in investor_profile if not investor_profile[i]]
@@ -185,7 +165,6 @@ def main():
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
     chat_container = st.empty()
-
     chat_messages = ""
     if st.session_state.chat_history:
         for message in st.session_state.chat_history:
@@ -199,15 +178,10 @@ def main():
 
     if st.button("Send") and user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})
-
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
-
         advisor_response = st.session_state.sessionAdvisor.messages[-1]['content'] if st.session_state.sessionAdvisor.messages else ""
-
         advisor_response = advisor_response.replace('\n', ' ').strip()
-
         st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
-
         chat_messages = ""
         if st.session_state.chat_history:
             for message in st.session_state.chat_history:
@@ -219,15 +193,12 @@ def main():
 
     if st.button("New Chat"):
         st.session_state.chat_history = []
-
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
-
         chat_container.markdown("", unsafe_allow_html=True)
         st.markdown("New conversation started. You can now enter your query.")
 
     if st.button("Exit Chat"):
         st.session_state.chat_history = []
-
         chat_container.markdown("", unsafe_allow_html=True)
         st.markdown("Chatbot session exited. You can start a new conversation by clicking the 'New Chat' button.")
 
