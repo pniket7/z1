@@ -39,30 +39,36 @@ class ChatSession:
     }
 
     def __init__(self, gpt_name='GPT') -> None:
-        # History of all messages in the chat.
         self.messages = []
-        # History of completions by the model.
         self.history = []
-        # The name of the model.
         self.gpt_name = gpt_name
+        self.cache = {}  # Introduce cache attribute
 
     def chat(self, user_input: Optional[Union[dict, str]] = None, verbose=True, *args, **kwargs):
-        """ Say something to the model and get a reply. """
         completion_index = 0 if kwargs.get('logprobs', False) or kwargs.get('model') == 'text-davinci-003' else 1
         completion = self.completions[completion_index]
         user_input = self.__get_input(user_input=user_input, log=True)
-        user_input = self.messages if completion_index else self.messages[-1]['content']
+        user_input_cache_key = user_input if isinstance(user_input, str) else user_input['content']
+
+        # Check cache before calling the model
+        if user_input_cache_key in self.cache:
+            cached_response = self.cache[user_input_cache_key]
+            self.__log(message={"role": 'assistant', "content": cached_response}, history=cached_response)
+            return
+
         kwargs.update({completion['prompt']: user_input, 'model': completion['model']})
         if completion_index == 1:
             kwargs.update({'temperature': 0.5})
         self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
         self.history[-1].update({'completion_index': completion_index})
+
+        # Store the response in the cache
+        self.cache[user_input_cache_key] = self.history[-1]['content']
+
         if verbose:
             self.__call__(1)
 
     def display_probas(self, reply_index):
-        """ Display probabilities of each word for the given reply by the model. """
-
         history = self.history[reply_index]
         assert not history.completion_index
         probas = history.logprobs.top_logprobs
@@ -73,12 +79,9 @@ class ChatSession:
                             ) for i, k in enumerate(probas)], axis=1).T
 
     def inject(self, line, role):
-        """ Inject lines into the chat. """
-
         self.__log(message={"role": role, "content": line})
 
     def clear(self, k=None):
-        """ Clears session. If provided, last k messages are cleared. """
         if k:
             self.messages = self.messages[:-k]
             self.history = self.history[:-k]
@@ -86,30 +89,22 @@ class ChatSession:
             self.__init__()
 
     def save(self, filename):
-        """ Saves the session to a file. """
-
         with open(filename, 'wb') as f:
             pickle.dump(self, f)
 
     def load(self, filename):
-        """ Loads up the session. """
-
         with open(filename, 'rb') as f:
             temp = pickle.load(f)
             self.messages = temp.messages
             self.history = temp.history
 
     def merge(self, filename):
-        """ Merges another session from a file with this one. """
-
         with open(filename, 'rb') as f:
             temp = pickle.load(f)
             self.messages += temp.messages
             self.history += temp.history
 
     def __get_input(self, user_input, log: bool = False):
-        """ Converts user input to the desired format. """
-
         if user_input is None:
             user_input = input("> ")
         if not isinstance(user_input, dict):
@@ -120,7 +115,6 @@ class ChatSession:
 
     @ErrorHandler
     def __get_reply(self, completion, log: bool = False, *args, **kwargs):
-        """ Calls the model. """
         reply = completion.create(*args, **kwargs).choices[0]
         if log:
             if hasattr(reply, 'message'):
@@ -136,8 +130,6 @@ class ChatSession:
             self.history.append(history)
 
     def __call__(self, k: Optional[int] = None):
-        """ Display the full chat log or the last k messages. """
-
         k = len(self.messages) if k is None else k
         for msg in self.messages[-k:]:
             message = msg['content']
@@ -184,21 +176,16 @@ def initialize_sessionAdvisor():
 def main():
     st.title('Financial Advisor Chatbot')
 
-    # Load the OpenAI API key from Streamlit secrets
     openai.api_key = st.secrets["api_key"]
 
-    # Initialize chat history in session state if it doesn't exist
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Initialize sessionAdvisor if it doesn't exist or is set to None
     if "sessionAdvisor" not in st.session_state or st.session_state.sessionAdvisor is None:
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
-    # Display chat messages from history on app rerun
     chat_container = st.empty()
 
-    # Display the chat history
     chat_messages = ""
     if st.session_state.chat_history:
         for message in st.session_state.chat_history:
@@ -208,27 +195,19 @@ def main():
 
     chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
 
-    # Accept user input
     user_input = st.text_input("Type your message here...")
 
-    # Create a button to send the user input
     if st.button("Send") and user_input:
-        # Add the user's message to the chat history
         st.session_state.chat_history.append({"role": "user", "content": user_input})
 
-        # Update the chat session with the user's input
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
 
-        # Get the chatbot's response from the last message in the history
         advisor_response = st.session_state.sessionAdvisor.messages[-1]['content'] if st.session_state.sessionAdvisor.messages else ""
 
-        # Remove newlines and extra spaces from the response
         advisor_response = advisor_response.replace('\n', ' ').strip()
 
-        # Add the chatbot's response to the chat history
         st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
 
-        # Display the chat history including new messages
         chat_messages = ""
         if st.session_state.chat_history:
             for message in st.session_state.chat_history:
@@ -238,24 +217,17 @@ def main():
         
         chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
 
-    # Create a button to start a new conversation
     if st.button("New Chat"):
-        # Clear the chat history to start a new conversation
         st.session_state.chat_history = []
 
-        # Reinitialize sessionAdvisor for a new conversation
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
-        # Clear the chat container for the new conversation
         chat_container.markdown("", unsafe_allow_html=True)
         st.markdown("New conversation started. You can now enter your query.")
 
-    # Create a button to exit the current conversation
     if st.button("Exit Chat"):
-        # Clear the chat history to exit the chat
         st.session_state.chat_history = []
 
-        # Clear the chat container for the exited chat
         chat_container.markdown("", unsafe_allow_html=True)
         st.markdown("Chatbot session exited. You can start a new conversation by clicking the 'New Chat' button.")
 
