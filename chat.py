@@ -28,7 +28,7 @@ class ChatSession:
         self.messages = []
         self.history = []
         self.gpt_name = gpt_name
-        self.gpt_cache = Cache(maxsize=1000)  # Creating an instance of Cache
+        self.gpt_cache = Cache()  # Creating an instance of Cache
 
     def chat(self, user_input: Optional[Union[dict, str]] = None, verbose=True, *args, **kwargs):
         completion_index = 0 if kwargs.get('logprobs', False) or kwargs.get('model') == 'text-davinci-003' else 1
