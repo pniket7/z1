@@ -55,7 +55,12 @@ class ChatSession:
         kwargs.update({completion['prompt']: user_input, 'model': completion['model']})
         if completion_index == 1:
             kwargs.update({'temperature': 0.5})
-        self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
+        # Display "bot is thinking...." message
+        print("Bot is thinking....")
+        # Get the reply from the model
+        reply = self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
+        # Replace "bot is thinking...." with the actual response
+        print(f"Bot: {reply.text}")
         self.history[-1].update({'completion_index': completion_index})
         if verbose:
             self.__call__(1)
