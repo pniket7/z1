@@ -195,9 +195,6 @@ def main():
     if "sessionAdvisor" not in st.session_state or st.session_state.sessionAdvisor is None:
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
-    # Display chat messages from history on app rerun
-    chat_container = st.empty()
-
     # Display the chat history
     chat_messages = ""
     if st.session_state.chat_history:
@@ -206,6 +203,7 @@ def main():
             alignment = "right" if message["role"] == "user" else "left"
             chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
 
+    chat_container = st.empty()
     chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
 
     # Accept user input
@@ -218,7 +216,7 @@ def main():
 
         # Display "Bot is thinking..." message while bot generates response
         thinking_message = st.empty()
-        thinking_message.text("Bot is thinking...")
+        thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">Bot is thinking...</div>', unsafe_allow_html=True)
 
         # Update the chat session with the user's input
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
@@ -242,7 +240,6 @@ def main():
                 chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
         
         chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
-
     
     # Create a button to start a new conversation
     if st.button("New Chat"):
