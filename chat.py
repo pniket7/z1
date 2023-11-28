@@ -182,6 +182,10 @@ def initialize_sessionAdvisor():
     return advisor
 
 def main():
+    # Display "Bot is thinking..." above the title
+    thinking_message = st.empty()
+    thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
+
     st.title('Financial Advisor Chatbot')
 
     # Load the OpenAI API key from Streamlit secrets
@@ -211,8 +215,8 @@ def main():
 
     # Create a button to send the user input
     if st.button("Send") and user_input:
-        # Display "Bot is thinking..." message inside the conversation history
-        st.session_state.chat_history.append({"role": "bot", "content": "Bot is thinking..."})
+        # Add the user's message to the chat history
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         # Update the chat session with the user's input
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
@@ -224,6 +228,7 @@ def main():
         advisor_response = advisor_response.replace('\n', ' ').strip()
 
         # Replace "Bot is thinking..." with bot's response
+        thinking_message.empty()
         st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
 
         # Display the chat history including new messages
