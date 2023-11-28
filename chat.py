@@ -187,6 +187,11 @@ def main():
     # Load the OpenAI API key from Streamlit secrets
     openai.api_key = st.secrets["api_key"]
 
+    # Display "Bot is thinking..." message at the top
+    thinking_message = st.empty()
+    thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
+
+
     # Initialize chat history in session state if it doesn't exist
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -213,10 +218,6 @@ def main():
     if st.button("Send") and user_input:
         # Add the user's message to the chat history
         st.session_state.chat_history.append({"role": "bot", "content": "Bot is thinking..."})
-
-        # Display "Bot is thinking..." message while bot generates response
-        thinking_message = st.empty()
-        thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
 
         # Update the chat session with the user's input
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
