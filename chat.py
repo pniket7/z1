@@ -55,12 +55,7 @@ class ChatSession:
         kwargs.update({completion['prompt']: user_input, 'model': completion['model']})
         if completion_index == 1:
             kwargs.update({'temperature': 0.5})
-        # Display "bot is thinking...." message
-        print("Bot is thinking....")
-        # Get the reply from the model
-        reply = self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
-        # Replace "bot is thinking...." with the actual response
-        print(f"Bot: {reply.text}")
+        self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
         self.history[-1].update({'completion_index': completion_index})
         if verbose:
             self.__call__(1)
@@ -216,12 +211,8 @@ def main():
 
     # Create a button to send the user input
     if st.button("Send") and user_input:
-        # Add the user's message to the chat history
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-
-        # Display "Bot is thinking..." message while bot generates response
-        thinking_message = st.empty()
-        thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
+        # Display "Bot is thinking..." message inside the conversation history
+        st.session_state.chat_history.append({"role": "bot", "content": "Bot is thinking..."})
 
         # Update the chat session with the user's input
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
@@ -233,7 +224,6 @@ def main():
         advisor_response = advisor_response.replace('\n', ' ').strip()
 
         # Replace "Bot is thinking..." with bot's response
-        thinking_message.empty()
         st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
 
         # Display the chat history including new messages
