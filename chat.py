@@ -181,11 +181,8 @@ def initialize_sessionAdvisor():
     advisor.inject(line="Ok.", role="assistant")
     return advisor
 
+# Adjusted main function
 def main():
-    # Display "Bot is thinking..." above the title
-    thinking_message = st.empty()
-    thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
-
     st.title('Financial Advisor Chatbot')
 
     # Load the OpenAI API key from Streamlit secrets
@@ -199,16 +196,31 @@ def main():
     if "sessionAdvisor" not in st.session_state or st.session_state.sessionAdvisor is None:
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
-    # Display the chat history
-    chat_messages = ""
-    if st.session_state.chat_history:
-        for message in st.session_state.chat_history:
-            role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
-            alignment = "right" if message["role"] == "user" else "left"
-            chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
-
+    # Display the chat interface
     chat_container = st.empty()
-    chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
+
+    user_input = st.text_input("Type your message here...")
+
+    if st.button("Send") and user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        thinking_message = st.empty()
+        thinking_message.markdown('<div id="thinking" style="display: block; background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
+
+        st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
+        advisor_response = st.session_state.sessionAdvisor.messages[-1]['content'] if st.session_state.sessionAdvisor.messages else ""
+        advisor_response = advisor_response.replace('\n', ' ').strip()
+
+        thinking_message.empty()
+        st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
+
+        chat_messages = ""
+        if st.session_state.chat_history:
+            for message in st.session_state.chat_history:
+                role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
+                alignment = "right" if message["role"] == "user" else "left"
+                chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
+        
+        chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
 
     # Accept user input
     user_input = st.text_input("Type your message here...")
