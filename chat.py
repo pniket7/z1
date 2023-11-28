@@ -215,8 +215,8 @@ def main():
         st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         # Display "Bot is thinking..." message while bot generates response
-        thinking_message = st.empty()
-        thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
+        thinking_message = '<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>'
+        st.session_state.chat_history.append({"role": "bot", "content": thinking_message})
 
         # Update the chat session with the user's input
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
@@ -228,8 +228,7 @@ def main():
         advisor_response = advisor_response.replace('\n', ' ').strip()
 
         # Replace "Bot is thinking..." with bot's response
-        thinking_message.empty()
-        st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
+        st.session_state.chat_history[-1]["content"] = advisor_response
 
         # Display the chat history including new messages
         chat_messages = ""
@@ -241,6 +240,9 @@ def main():
         
         chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
 
+        # Clear "Bot is thinking..." message after displaying the response
+        st.session_state.chat_history.pop()
+        
     # Create a button to start a new conversation
     if st.button("New Chat"):
         # Clear the chat history to start a new conversation
