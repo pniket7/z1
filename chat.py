@@ -205,10 +205,10 @@ def main():
                 chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
         return chat_messages
 
-    # Display the chat history
+    # Display the chat history and bot thinking message together
     chat_container = st.empty()
-    chat_history_display = update_chat_display(st.session_state.chat_history)
-    chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_history_display}</div>', unsafe_allow_html=True)
+    chat_and_thinking_display = update_chat_display(st.session_state.chat_history) + '<div id="thinking"></div>'
+    chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll; position: relative;">{chat_and_thinking_display}</div>', unsafe_allow_html=True)
 
     # Accept user input
     user_input = st.text_input("Type your message here...")
@@ -219,27 +219,22 @@ def main():
         st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         # Display "Bot is thinking..." message while bot generates response
-        thinking_message = st.empty()
-        thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
+        with st.spinner(text="Bot is thinking..."):
+            # Update the chat session with the user's input
+            st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
 
-        # Update the chat session with the user's input
-        st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
+            # Get the chatbot's response from the last message in the history
+            advisor_response = st.session_state.sessionAdvisor.messages[-1]['content'] if st.session_state.sessionAdvisor.messages else ""
 
-        # Get the chatbot's response from the last message in the history
-        advisor_response = st.session_state.sessionAdvisor.messages[-1]['content'] if st.session_state.sessionAdvisor.messages else ""
+            # Remove newlines and extra spaces from the response
+            advisor_response = advisor_response.replace('\n', ' ').strip()
 
-        # Remove newlines and extra spaces from the response
-        advisor_response = advisor_response.replace('\n', ' ').strip()
-
-        # Remove the "Bot is thinking..." message
-        thinking_message.empty()
-
-        # Add the bot's response to the chat history
-        st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
+            # Add the bot's response to the chat history
+            st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
 
         # Display the updated chat history including new messages
-        chat_history_display = update_chat_display(st.session_state.chat_history)
-        chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_history_display}</div>', unsafe_allow_html=True)
+        chat_and_thinking_display = update_chat_display(st.session_state.chat_history) + '<div id="thinking"></div>'
+        chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll; position: relative;">{chat_and_thinking_display}</div>', unsafe_allow_html=True)
 
     # Create a button to start a new conversation
     if st.button("New Chat"):
