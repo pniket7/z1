@@ -38,7 +38,7 @@ class ChatSession:
         )
     }
 
-    def _init_(self, gpt_name='GPT') -> None:
+    def __init__(self, gpt_name='GPT') -> None:
         # History of all messages in the chat.
         self.messages = []
         # History of completions by the model.
