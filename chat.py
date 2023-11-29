@@ -195,16 +195,20 @@ def main():
     if "sessionAdvisor" not in st.session_state or st.session_state.sessionAdvisor is None:
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
-    # Display the chat history
-    chat_messages = ""
-    if st.session_state.chat_history:
-        for message in st.session_state.chat_history:
-            role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
-            alignment = "right" if message["role"] == "user" else "left"
-            chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
+    # Function to update chat history display
+    def update_chat_display(messages):
+        chat_messages = ""
+        if messages:
+            for message in messages:
+                role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
+                alignment = "right" if message["role"] == "user" else "left"
+                chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
+        return chat_messages
 
+    # Display the chat history
     chat_container = st.empty()
-    chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
+    chat_history_display = update_chat_display(st.session_state.chat_history)
+    chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_history_display}</div>', unsafe_allow_html=True)
 
     # Accept user input
     user_input = st.text_input("Type your message here...")
@@ -227,19 +231,15 @@ def main():
         # Remove newlines and extra spaces from the response
         advisor_response = advisor_response.replace('\n', ' ').strip()
 
-        # Replace "Bot is thinking..." with bot's response
+        # Remove the "Bot is thinking..." message
         thinking_message.empty()
+
+        # Add the bot's response to the chat history
         st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
 
-        # Display the chat history including new messages
-        chat_messages = ""
-        if st.session_state.chat_history:
-            for message in st.session_state.chat_history:
-                role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
-                alignment = "right" if message["role"] == "user" else "left"
-                chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
-        
-        chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
+        # Display the updated chat history including new messages
+        chat_history_display = update_chat_display(st.session_state.chat_history)
+        chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_history_display}</div>', unsafe_allow_html=True)
 
     # Create a button to start a new conversation
     if st.button("New Chat"):
