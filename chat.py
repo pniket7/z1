@@ -38,7 +38,7 @@ class ChatSession:
         )
     }
 
-    def __init__(self, gpt_name='GPT') -> None:
+    def _init_(self, gpt_name='GPT') -> None:
         # History of all messages in the chat.
         self.messages = []
         # History of completions by the model.
@@ -58,7 +58,7 @@ class ChatSession:
         self.__get_reply(completion=completion['completion'], log=True, *args, **kwargs)
         self.history[-1].update({'completion_index': completion_index})
         if verbose:
-            self.__call__(1)
+            self._call_(1)
 
     def display_probas(self, reply_index):
         """ Display probabilities of each word for the given reply by the model. """
@@ -83,7 +83,7 @@ class ChatSession:
             self.messages = self.messages[:-k]
             self.history = self.history[:-k]
         else:
-            self.__init__()
+            self._init_()
 
     def save(self, filename):
         """ Saves the session to a file. """
@@ -135,7 +135,7 @@ class ChatSession:
             assert isinstance(history, dict)
             self.history.append(history)
 
-    def __call__(self, k: Optional[int] = None):
+    def _call_(self, k: Optional[int] = None):
         """ Display the full chat log or the last k messages. """
 
         k = len(self.messages) if k is None else k
@@ -262,5 +262,5 @@ def main():
         chat_container.markdown("", unsafe_allow_html=True)
         st.markdown("Chatbot session exited. You can start a new conversation by clicking the 'New Chat' button.")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
