@@ -196,6 +196,7 @@ def main():
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
     # Display the chat history
+    chat_container = st.empty()
     chat_messages = ""
     if st.session_state.chat_history:
         for message in st.session_state.chat_history:
@@ -203,7 +204,6 @@ def main():
             alignment = "right" if message["role"] == "user" else "left"
             chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
 
-    chat_container = st.empty()
     chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
 
     # Accept user input
@@ -215,8 +215,7 @@ def main():
         st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         # Display "Bot is thinking..." message while bot generates response
-        thinking_message = st.empty()
-        thinking_message.markdown('<div style="background-color: #F0F0F0; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%; color: black;">Bot is thinking...</div>', unsafe_allow_html=True)
+        st.session_state.chat_history.append({"role": "bot", "content": "Bot is thinking..."})
 
         # Update the chat session with the user's input
         st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
@@ -228,10 +227,10 @@ def main():
         advisor_response = advisor_response.replace('\n', ' ').strip()
 
         # Replace "Bot is thinking..." with bot's response
-        thinking_message.empty()
-        st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
+        st.session_state.chat_history[-1]["content"] = advisor_response
 
         # Display the chat history including new messages
+        chat_container.empty()
         chat_messages = ""
         if st.session_state.chat_history:
             for message in st.session_state.chat_history:
@@ -241,7 +240,7 @@ def main():
         
         chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll;">{chat_messages}</div>', unsafe_allow_html=True)
 
-    # Create a button to start a new conversation
+    # Create buttons to start a new conversation or exit the chat
     if st.button("New Chat"):
         # Clear the chat history to start a new conversation
         st.session_state.chat_history = []
@@ -253,7 +252,6 @@ def main():
         chat_container.markdown("", unsafe_allow_html=True)
         st.markdown("New conversation started. You can now enter your query.")
 
-    # Create a button to exit the current conversation
     if st.button("Exit Chat"):
         # Clear the chat history to exit the chat
         st.session_state.chat_history = []
