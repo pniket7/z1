@@ -262,5 +262,5 @@ def main():
         chat_container.markdown("", unsafe_allow_html=True)
         st.markdown("Chatbot session exited. You can start a new conversation by clicking the 'New Chat' button.")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
