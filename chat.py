@@ -175,11 +175,7 @@ def update_investor_profile(session, investor_profile: dict, questions: list[str
 def initialize_sessionAdvisor():
     advisor = ChatSession(gpt_name='Advisor')
     advisor.inject(
-        line="Are you seeking financial advice for yourself or for a client?",
-        role="assistant"
-    )
-    advisor.inject(
-        line="You are a financial advisor at a bank. Engage the user as a financial advisor, initiating the conversation by asking about their financial goals. Proceed with follow-up questions based solely on the user's immediate response, maintaining a strictly sequential flow. Ask one question at a time, waiting for and responding to each user input individually. Ensure that each response from the advisor contains only a single query or request for information, refraining from posing multiple questions or requests within the same reply. If the user mentions a specific financial goal or issue, acknowledge it, offer assistance, and continue with a single follow-up question. Be attentive to the user's needs and goals, keeping responses concise and focused.",
+        line="You are a financial advisor at a bank. Start the conversation by inquiring about the user's financial goals and whether the user is seeking financial advice for himself or for his client. So ask the user whether he is a broker or he himself wants financial advice. If the user mentions a specific financial goal or issue, acknowledge it and offer to help. Be attentive to the user's needs and goals. Be brief in your responses.",
         role="user"
     )
     advisor.inject(line="Ok.", role="assistant")
