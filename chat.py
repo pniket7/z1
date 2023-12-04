@@ -188,6 +188,12 @@ def generate_streaming_responses(user_input):
         while True:
             # Call the model to get the next part of the response
             advisor_response = st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
+            
+            if advisor_response is None:
+                # Handle None response here (for instance, print an error message)
+                print("Advisor response is None. Please check for errors.")
+                break
+                
             response_part = advisor_response['content']
 
             # Update the chat history with the new response part
