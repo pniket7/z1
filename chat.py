@@ -249,6 +249,9 @@ def main():
         with st.spinner(text="Bot is thinking..."):
             generate_streaming_responses(user_input)
 
+        # Clear the text input after the message is sent and bot responds
+        user_input = ""  # Clear the text input
+
     # Create a button to start a new conversation
     if st.button("New Chat"):
         # Clear the chat history to start a new conversation
