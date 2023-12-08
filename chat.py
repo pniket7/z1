@@ -175,49 +175,18 @@ def update_investor_profile(session, investor_profile: dict, questions: list[str
 def initialize_sessionAdvisor():
     advisor = ChatSession(gpt_name='Advisor')
     advisor.inject(
-        line="You are a financial advisor at a bank. Start the conversation by inquiring about the user's financial goals and whether the user is seeking financial advice for himself or for his client. So ask the user at the start of the conversation whether he is a broker or he himself wants financial advice. If the user mentions a specific financial goal or issue, acknowledge it and offer to help. Be attentive to the user's needs and goals. Be brief in your responses.",
+        line="You are a financial advisor at a bank selling bank loans to the user.Your main goal is to converse with the user and guide him to buy a loan from the bank.If the user is convinced by you for taking a loan, tell the uer that you are handing over the conversation to a human representative of the bank for further steps and end the conversation.If the user is not convinced to take the loan ,try to convince him. If the user is still not convinced, thank the user and end the conversation.  Start the conversation by inquiring about the user's financial goals and whether the user is seeking loan for himself or on behalf of his client as a broker. If the user mentions a specific financial goal or issue, acknowledge it and offer to help. Be attentive to the user's needs and goals. Be brief in your responses.Access the user needs and gather information from the user about what type of loan he wants to take from the bank.If the user is happy with the affordabilty of the loan, give some sample explaination about the application process and interest rate of the loan.Guide the user accordingly and if he is convinced, handover the user to the human representative and close the conversation, otherwise thank the user and close the conversation.",
         role="user"
     )
     advisor.inject(line="Ok.", role="assistant")
     return advisor
+if "my_text" not in st.session_state:
+    st.session_state.my_text = ""
+
+def submit():
+    st.session_state.my_text = st.session_state.widget
+    st.session_state.widget = ""
     
-def generate_streaming_responses(user_input):
-    # Function to generate and display streaming responses
-    with st.empty() as output:
-        # Generate response incrementally
-        while True:
-            # Call the model to get the next part of the response
-            advisor_response = st.session_state.sessionAdvisor.chat(user_input=user_input, verbose=False)
-            
-            if advisor_response is None:
-                # Handle None response here (for instance, print an error message)
-                print("Advisor response is None. Please check for errors.")
-                break
-                
-            response_part = advisor_response['content']
-
-            # Update the chat history with the new response part
-            st.session_state.chat_history.append({"role": "bot", "content": response_part})
-
-            # Update the displayed chat history
-            chat_display = update_chat_display(st.session_state.chat_history)
-            output.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll; position: relative;">{chat_display}</div>', unsafe_allow_html=True)
-            
-            # If the response is complete, break the loop
-            if advisor_response['done']:
-                break
-            time.sleep(0.5)  # Adjust this delay as needed
-
-def update_chat_display(messages):
-    # Function to update chat display
-    chat_messages = ""
-    if messages:
-        for message in messages:
-            role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
-            alignment = "right" if message["role"] == "user" else "left"
-            chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
-    return chat_messages
-
 def main():
     st.title('Financial Advisor Chatbot')
 
@@ -232,23 +201,49 @@ def main():
     if "sessionAdvisor" not in st.session_state or st.session_state.sessionAdvisor is None:
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
+    # Function to update chat history display
+    def update_chat_display(messages):
+        chat_messages = ""
+        if messages:
+            for message in messages:
+                role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
+                alignment = "right" if message["role"] == "user" else "left"
+                chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
+        return chat_messages
+
     # Display the chat history and bot thinking message together
     chat_container = st.empty()
     chat_and_thinking_display = update_chat_display(st.session_state.chat_history) + '<div id="thinking"></div>'
     chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll; position: relative;">{chat_and_thinking_display}</div>', unsafe_allow_html=True)
 
     # Accept user input
-    user_input = st.text_input("Type your message here...")
+    with st.form(key="my_form"):
+        placeholder=st.empty()
+        user_input = placeholder.text_input("Type your message here...",key="widget")
+        # Create a button to send the user inputs
+        if st.form_submit_button("Send",on_click=submit) and st.session_state.my_text:
+            # Add the user's message to the chat history
+            st.session_state.chat_history.append({"role": "user", "content": st.session_state.my_text})
 
-    # Create a button to send the user input
-    if st.button("Send") and user_input:
-        # Add the user's message to the chat history
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
+            # Display "Bot is thinking..." message while bot generates response
+            with st.spinner(text="Bot is thinking..."):
+                # Update the chat session with the user's input
+                st.session_state.sessionAdvisor.chat(user_input=st.session_state.my_text, verbose=False)
 
-        # Display "Bot is thinking..." message while bot generates response
-        with st.spinner(text="Bot is thinking..."):
-            generate_streaming_responses(user_input)
+                # Get the chatbot's response from the last message in the history
+                advisor_response = st.session_state.sessionAdvisor.messages[-1]['content'] if st.session_state.sessionAdvisor.messages else ""
 
+                # Remove newlines and extra spaces from the response
+                advisor_response = advisor_response.replace('\n', ' ').strip()
+
+                # Add the bot's response to the chat history
+                st.session_state.chat_history.append({"role": "bot", "content": advisor_response})
+
+            # Display the updated chat history including new messages
+            chat_and_thinking_display = update_chat_display(st.session_state.chat_history) + '<div id="thinking"></div>'
+            chat_container.markdown(f'<div style="border: 1px solid black; padding: 10px; height: 400px; overflow-y: scroll; position: relative;">{chat_and_thinking_display}</div>', unsafe_allow_html=True)
+        
+    
     # Create a button to start a new conversation
     if st.button("New Chat"):
         # Clear the chat history to start a new conversation
