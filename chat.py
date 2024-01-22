@@ -26,7 +26,7 @@ class ChatSession:
     completions = {
         1: dict(
             completion=openai.ChatCompletion,
-            model="gpt-4-turbo",
+            model="gpt-4",
             text='message.content',
             prompt='messages'
         ),
