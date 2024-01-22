@@ -189,7 +189,7 @@ def submit():
     st.session_state.widget = ""
     
 def main():
-    st.title('Financial Advisor Chatbot')
+    st.title('ELLO-Financial Advisor Chatbot')
 
     # Load the OpenAI API key from Streamlit secrets
     openai.api_key = st.secrets["api_key"]
