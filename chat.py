@@ -32,7 +32,7 @@ class ChatSession:
         ),
         0: dict(
             completion=openai.Completion,
-            model="text-davinci-003",
+            model="code-davinci-002",
             text='text',
             prompt='prompt'
         )
