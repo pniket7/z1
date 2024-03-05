@@ -203,14 +203,25 @@ def main():
         st.session_state.sessionAdvisor = initialize_sessionAdvisor()
 
     # Function to update chat history display
-    def update_chat_display(messages):
-        chat_messages = ""
-        if messages:
-            for message in messages:
-                role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
-                alignment = "right" if message["role"] == "user" else "left"
-                chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{message["content"]}</span></div>'
-        return chat_messages
+# Function to update chat history display
+def update_chat_display(messages):
+    chat_messages = ""
+    if messages:
+        for message in messages:
+            role_color = "#0084ff" if message["role"] == "user" else "#9400D3"
+            alignment = "right" if message["role"] == "user" else "left"
+            content = message["content"]
+            # If the message is from the bot and contains multiple sentences, split it into bullet points
+            if message["role"] == "bot" and "." in content:
+                sentences = content.split(".")
+                bullet_points = "<ul>"
+                for sentence in sentences:
+                    bullet_points += f"<li>{sentence.strip()}</li>"
+                bullet_points += "</ul>"
+                content = bullet_points
+            chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{content}</span></div>'
+    return chat_messages
+
 
     # Display the chat history and bot thinking message together
     chat_container = st.empty()
