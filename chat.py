@@ -205,6 +205,7 @@ def main():
     # Function to update chat history display
     
 # Function to update chat history display
+
 def update_chat_display(messages):
     chat_messages = ""
     if messages:
@@ -222,6 +223,7 @@ def update_chat_display(messages):
                 content = bullet_points
             chat_messages += f'<div style="text-align: {alignment}; margin-bottom: 10px;"><span style="background-color: {role_color}; color: white; padding: 8px 12px; border-radius: 20px; display: inline-block; max-width: 70%;">{content}</span></div>'
     return chat_messages
+
 
 
 
